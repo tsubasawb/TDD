@@ -45,6 +45,11 @@ class TestSuite:
         for test in self.tests:
             test.run(result)
 
+    def collect_testcases(self, object):
+        for method in dir(object):
+            if callable(getattr(object, method)) and method.startswith("test"):
+                self.tests.append(object(method))
+
 
 class WasRun(TestCase):
     def setUp(self):
@@ -91,14 +96,16 @@ class TestCaseTest(TestCase):
         suite.run(self.result)
         assert "2 run, 1 failed" == self.result.summary()
 
+    def testCollectTestCases(self):
+        suite = TestSuite()
+        suite.collect_testcases(WasRun)
+        suite.run(self.result)
+        assert "2 run, 1 failed" == self.result.summary()
+
 
 if __name__ == "__main__":
     suite = TestSuite()
-    suite.add(TestCaseTest("testTemplateMethod"))
-    suite.add(TestCaseTest("testResult"))
-    suite.add(TestCaseTest("testFailedResult"))
-    suite.add(TestCaseTest("testFailedResultFormatting"))
-    suite.add(TestCaseTest("testSuite"))
+    suite.collect_testcases(TestCaseTest)
     result = TestResult()
     suite.run(result)
     print(result.summary())
